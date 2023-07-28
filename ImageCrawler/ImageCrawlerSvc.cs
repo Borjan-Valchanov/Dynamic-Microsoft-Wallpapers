@@ -40,7 +40,7 @@ namespace ImageCrawler {
 		}
 		// At some point this should be replaced with an event handler
 		private void indexUpdated() {
-			indexer.UpdateIndex(index);
+			downloader.UpdateIndex(index);
 		}
 	}
 }

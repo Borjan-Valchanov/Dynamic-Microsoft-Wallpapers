@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ImageCrawler {
 	// Use this class to download images to a specified directory
 	public class ImageCrawlerSvc {
-		List<string> index {
+		Queue<string> index {
 			get {
 				return index;
 			}
@@ -22,7 +22,7 @@ namespace ImageCrawler {
 
 		// imgDir: Wallpaper Destination directory
 		public ImageCrawlerSvc(string _imgDir) {
-			index = new List<string>();
+			index = new Queue<string>();
 			imgDir = _imgDir;
 			indexer = new Indexer();
 			downloader = new Downloader();

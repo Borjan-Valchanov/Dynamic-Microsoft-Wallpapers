@@ -10,7 +10,7 @@ namespace ImageCrawler {
 		// Holds to be downloaded elements
 		Queue<string> index;
 		// Holds ongoing downloads
-		List<Download> downloading;
+		List<Task> downloading;
 		// Maximum amount of downloads in parallel
 		public int parallelDownloadMax;
 		// TODO

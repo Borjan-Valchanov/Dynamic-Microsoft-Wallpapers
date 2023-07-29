@@ -11,9 +11,12 @@ namespace ImageCrawler {
 		Queue<string> index;
 		// Holds ongoing downloads
 		List<Download> downloading;
+		// Maximum amount of downloads in parallel
+		public int parallelDownloadMax;
 		// TODO
-		public Downloader() {
-			throw new NotImplementedException();
+		public Downloader(Queue<string> _index, int _parallelDownloadMax = 1) {
+			index = _index;
+			parallelDownloadMax = _parallelDownloadMax;
 		}
 		public void UpdateIndex(Queue<string> _index) {
 			index = _index;

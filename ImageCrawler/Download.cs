@@ -6,9 +6,15 @@ using System.Threading.Tasks;
 
 namespace ImageCrawler {
 	internal class Download {
+		string pUrl;
+		public string URL {
+			get {
+				return pUrl;
+			}
+		}
 		// TODO
-		public Download() {
-			throw new NotImplementedException();
+		public Download(string URL) {
+			pUrl = URL;
 		}
 		public void Abort() {
 			throw new NotImplementedException();

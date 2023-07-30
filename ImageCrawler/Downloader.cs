@@ -13,7 +13,7 @@ namespace ImageCrawler {
 		// Holds to be downloaded elements
 		Queue<string> index;
 		// Holds ongoing downloads
-		List<Task> downloading;
+		List<Download> downloading;
 		// Maximum amount of downloads in parallel
 		public int parallelDownloadMax {
 			get {
@@ -41,8 +41,6 @@ namespace ImageCrawler {
 			index = _index;
 			startNewDownloads();
 		}
-		// TODO: Reintroduce ImageCrawler.Download class to better handle download abortion/failing.
-		//
 		// Start new downloads.
 		// Will be called when a download finishes, the download file index updates, or the parallel download limit is raised
 		private void startNewDownloads() {
@@ -58,17 +56,15 @@ namespace ImageCrawler {
 				string filename = fileDestDir + downloadURL.Split("/").Last();
 				// If the file exists already, do not download it again
 				if (File.Exists(filename)) continue;
-				// Create a web client to handle the download
-				WebClient wCli = new WebClient();
-				// Create a new download task
-				Task downloadTask = wCli.DownloadFileTaskAsync(downloadURL, filename);
-				// When the download finishes, remove the download task from download list
-				wCli.DownloadFileCompleted += (sender, e) => {
-					if (!downloading.Remove(downloadTask)) throw new Exception("Finished download task could not be removed.");
+				// Initialise a download object to handle the download
+				Download download = new Download(downloadURL, filename);
+				// When the download finishes, remove the download from the download list
+				download.wCli.DownloadFileCompleted += (sender, e) => {
+					if (!downloading.Remove(download)) throw new Exception("Finished download could not be removed.");
 					startNewDownloads();
 				};
-				// Start downloading
-				downloadTask.Start();
+				// Add download to download list
+				downloading.Add(download);
 			}
 		}
 	}

@@ -16,16 +16,18 @@ namespace ImageCrawler {
 				indexUpdated();
 			}
 		}
+		public int parallelDownloadMax;
 		string imgDir;
 		Indexer indexer;
 		Downloader downloader;
 
 		// imgDir: Wallpaper Destination directory
-		public ImageCrawlerSvc(string _imgDir) {
+		public ImageCrawlerSvc(string _imgDir, int _parallelDownloadMax) {
 			index = new Queue<string>();
 			imgDir = _imgDir;
+			parallelDownloadMax = _parallelDownloadMax;
 			indexer = new Indexer();
-			downloader = new Downloader();
+			downloader = new Downloader(imgDir, index, parallelDownloadMax);
 		}
 		// Start downloading
 		public void Start() {

@@ -40,7 +40,6 @@ namespace ImageCrawler {
 			// Clear index
 			// Disable downloader
 		}
-		// At some point this should be replaced with an event handler
 		private void indexUpdated() {
 			downloader.UpdateIndex(index);
 		}

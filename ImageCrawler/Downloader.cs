@@ -30,7 +30,7 @@ namespace ImageCrawler {
 			fileDestDir = _fileDestDir;
 			index = _index;
 			parallelDownloadMax = _parallelDownloadMax;
-			downloading = new List<Task>();
+			downloading = new List<Download>();
 			startNewDownloads();
 		}
 		// Intercept when the ImageCrawlerSvc object makes a change to the Downloader's download index,

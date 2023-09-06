@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 
 namespace ImageCrawler {
 	internal class Download {
+		// Public read-only int to read download progress
 		public int Progress {
 			get {
 				return progress;
 			}
 		}
+		// Private int to store download progress
 		int progress;
 		// Stores the URL of the downloaded file
 		string url;

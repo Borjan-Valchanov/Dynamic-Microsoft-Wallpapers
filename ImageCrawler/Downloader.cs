@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 namespace ImageCrawler {
 	// Use this class to download a specified number of images simultaneously to a specified directory from a specified index.
 	internal class Downloader {
+		// Specifies internally whether downloading is enabled.
+		bool enabled;
 		// Specifies download destination directory
 		string fileDestDir;
 		// Holds to be downloaded elements
@@ -23,15 +25,15 @@ namespace ImageCrawler {
 				// if the maximum download limit is raised, we can start new downloads
 				bool initNewDownloads = value > parallelDownloadMax;
 				parallelDownloadMax = value;
-				if (initNewDownloads) startNewDownloads();
+				if (initNewDownloads && enabled) startNewDownloads();
 			}
 		}
 		public Downloader(string _fileDestDir, Queue<string> _index, int _parallelDownloadMax = 1) {
+			enabled = false;
 			fileDestDir = _fileDestDir;
 			index = _index;
 			parallelDownloadMax = _parallelDownloadMax;
 			downloading = new List<Download>();
-			startNewDownloads();
 		}
 		// Intercept when the ImageCrawlerSvc object makes a change to the Downloader's download index,
 		// so new downloads can be initiated right away.
@@ -39,11 +41,12 @@ namespace ImageCrawler {
 		// startNewDownloads() call
 		public void UpdateIndex(Queue<string> _index) {
 			index = _index;
-			startNewDownloads();
+			if (enabled) startNewDownloads();
 		}
 		// Start new downloads.
 		// Will be called when a download finishes, the download file index updates, or the parallel download limit is raised
 		private void startNewDownloads() {
+			if (!enabled) return;
 			// If there are no files to be downloaded in the index or the parallel download maximum is reached or exceeded,
 			// do not start any new downloads
 			if (index.Count == 0) return;
@@ -66,6 +69,19 @@ namespace ImageCrawler {
 				// Add download to download list
 				downloading.Add(download);
 			}
+		}
+		// Enables downloading
+		public void Enable() {
+			enabled = true;
+			startNewDownloads();
+		}
+		// Disables downloading and aborts all current downloads
+		public void Disable() {
+			enabled = false;
+			for (int i = 0; i < downloading.Count; i++) {
+				downloading[i].Abort();
+			}
+			downloading = new List<Download>();
 		}
 	}
 }

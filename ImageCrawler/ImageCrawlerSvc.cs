@@ -33,12 +33,15 @@ namespace ImageCrawler {
 		public void Start() {
 			// Start indexing
 			// Enable downloader
+			downloader.Enable();
 		}
 		// Stop downloading
 		public void Stop() {
 			// Stop indexing
-			// Clear index
 			// Disable downloader
+			downloader.Disable();
+			// Clear index
+			index = new Queue<string>();
 		}
 		private void indexUpdated() {
 			downloader.UpdateIndex(index);

@@ -28,19 +28,16 @@ namespace ImageCrawler {
 				if (initNewDownloads && enabled) startNewDownloads();
 			}
 		}
-		public Downloader(string _fileDestDir, Queue<string> _index, int _parallelDownloadMax = 1) {
+		public Downloader(string _fileDestDir, int _parallelDownloadMax = 1) {
 			enabled = false;
 			fileDestDir = _fileDestDir;
-			index = _index;
+			index = new Queue<string>();
 			parallelDownloadMax = _parallelDownloadMax;
 			downloading = new List<Download>();
 		}
-		// Intercept when the ImageCrawlerSvc object makes a change to the Downloader's download index,
-		// so new downloads can be initiated right away.
-		// This is used instead of an accessor so index changes from within the downloader do not cause a
-		// startNewDownloads() call
-		public void UpdateIndex(Queue<string> _index) {
-			index = _index;
+		// Expose a method to add a new item to the index when the Indexer raises a indexChanged event
+		public void addToIndex(string value) {
+			index.Enqueue(value);
 			if (enabled) startNewDownloads();
 		}
 		// Start new downloads.
@@ -62,7 +59,7 @@ namespace ImageCrawler {
 				// Initialise a download object to handle the download
 				Download download = new Download(downloadURL, filename);
 				// When the download finishes, remove the download from the download list
-				download.wCli.DownloadFileCompleted += (sender, e) => {
+				download.DownloadFinished += (sender, e) => {
 					if (!downloading.Remove(download)) throw new Exception("Finished download could not be removed.");
 					startNewDownloads();
 				};
@@ -82,6 +79,7 @@ namespace ImageCrawler {
 				downloading[i].Abort();
 			}
 			downloading = new List<Download>();
+			index = new Queue<string>();
 		}
 	}
 }

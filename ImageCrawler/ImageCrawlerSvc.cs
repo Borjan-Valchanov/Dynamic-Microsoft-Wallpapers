@@ -7,15 +7,6 @@ using System.Threading.Tasks;
 namespace ImageCrawler {
 	// Use this class to download images to a specified directory
 	public class ImageCrawlerSvc {
-		Queue<string> index {
-			get {
-				return index;
-			}
-			set {
-				index = value;
-				indexUpdated();
-			}
-		}
 		public int parallelDownloadMax;
 		string imgDir;
 		Indexer indexer;
@@ -23,11 +14,14 @@ namespace ImageCrawler {
 
 		// imgDir: Wallpaper Destination directory
 		public ImageCrawlerSvc(string _imgDir, int _parallelDownloadMax) {
-			index = new Queue<string>();
 			imgDir = _imgDir;
 			parallelDownloadMax = _parallelDownloadMax;
 			indexer = new Indexer();
-			downloader = new Downloader(imgDir, index, parallelDownloadMax);
+			downloader = new Downloader(imgDir, parallelDownloadMax);
+			indexer.indexChanged += (sender, e) => {
+				if (e.Action != System.ComponentModel.CollectionChangeAction.Add) throw new ArgumentException("Unexpected index event sent by ImageCrawler.Indexer: expected \"add\" action");
+				downloader.addToIndex((string)e.Element);
+			};
 		}
 		// Start downloading
 		public void Start() {
@@ -40,11 +34,6 @@ namespace ImageCrawler {
 			// Stop indexing
 			// Disable downloader
 			downloader.Disable();
-			// Clear index
-			index = new Queue<string>();
-		}
-		private void indexUpdated() {
-			downloader.UpdateIndex(index);
 		}
 	}
 }

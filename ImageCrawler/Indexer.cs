@@ -20,22 +20,18 @@ namespace ImageCrawler {
 		string directory;
 		// Event that communicates index additions
 		public event CollectionChangeEventHandler indexChanged;
+		private event EventHandler indexThreadAbort;
+		bool debug = false;
 		// The constructor. What else did you expect?
-		public Indexer(string _directory) {
-			// If there's a new line in the directory provided, it's invalid. I mean seriously?
-			if (_directory.Contains(Environment.NewLine)) throw new ArgumentException("The provided directory is invalid (New line)");
-			// Regex that matches all backslshes immediately in front of the end of the string
-			Regex directoryRegex = new Regex("\\*$");
-			// Replace all forward slashes with backward ones and remove all backward slashes at the end, then assign that to this.directory
-			directory = directoryRegex.Replace(_directory.Replace("/", "\\"), "");
-			// If the directory doesn't exist, don't even try.
-			if (!Directory.Exists(directory)) throw new DirectoryNotFoundException("What it says on the can. The fucking directory doesn't exist.");
+		public Indexer(string _directory, bool _debug = false) {
+			debug = _debug;
+			directory = _directory;
 			// Define the two threads for the two pages
 			bingThread = new Thread(() => {
-				indexWallpapersFromWPSite(this, bing);
+				indexWallpapersFromWPSite(this, bing, debug);
 			});
 			spotlightThread = new Thread(() => {
-				indexWallpapersFromWPSite(this, spotlight);
+				indexWallpapersFromWPSite(this, spotlight, debug);
 			});
 		}
 		private void addToIndex(string value) {
@@ -47,16 +43,20 @@ namespace ImageCrawler {
 			bingThread.Start();
 			spotlightThread.Start();
 		}
-		// Suspend the two indexing threads. I still don't know whether this pauses or stops them.
+		// Stop the two indexing threads.
 		public void StopIndexing() {
-			bingThread.Suspend();
-			spotlightThread.Suspend();
+			// Call an event handler that terminates the threads.
+			if (indexThreadAbort != null) indexThreadAbort(this, EventArgs.Empty);
 		}
 		// Define the two indexing threads.
 		Thread bingThread;
 		Thread spotlightThread;
 		// This will be run asynchronously and does the actual crawling.
-		static void indexWallpapersFromWPSite(Indexer indexer, string domain) {
+		static void indexWallpapersFromWPSite(Indexer indexer, string domain, bool debug = false) {
+			bool indexingActive = true;
+			indexer.indexThreadAbort += (sender, e) => {
+				indexingActive = false;
+			};
 			// Page counter
 			int page = 1;
 			// Regex for matching the resolution suffix of images
@@ -70,7 +70,7 @@ namespace ImageCrawler {
 			// Iterative crawler code will be executed until we get a 404
 			try {
 				// Iterate over pages
-				while (true) {
+				while (indexingActive) {
 					// Download page source html
 					source = wCli.DownloadString("https://" + domain + "/page/" + page.ToString());
 					// Load for analysis
@@ -92,7 +92,10 @@ namespace ImageCrawler {
 			} catch (WebException e) {
 				// If we get a 404 (HttpStatusCode.NotFound), we're at the end of available pages, so this is expected
 				// If not, throw the exception again
+				if (typeof(HttpWebResponse) != e.GetType()) throw e;
 				if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.NotFound) throw e;
+				return;
+			} catch (ThreadAbortException) {
 				return;
 			}
 		}

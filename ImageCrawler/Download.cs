@@ -14,6 +14,7 @@ namespace ImageCrawler {
 				return progress;
 			}
 		}
+		bool debug = false;
 		// Private int to store download progress
 		int progress;
 		// Stores the URL of the downloaded file
@@ -36,7 +37,8 @@ namespace ImageCrawler {
 		public event AsyncCompletedEventHandler DownloadFinished;
 		// Event handler for when the download progress changes. Useful for only updating UI when necessary.
 		public event DownloadProgressChangedEventHandler ProgressChanged;
-		public Download(string _url, string _filePath) {
+		public Download(string _url, string _filePath, bool _debug = false) {
+			debug = _debug;
 			url = _url;
 			filePath = _filePath;
 			progress = 0;
@@ -47,17 +49,15 @@ namespace ImageCrawler {
 				if (ProgressChanged != null) ProgressChanged(sender, e);
 			};
 			wCli.DownloadFileCompleted += (sender, e) => {
-				if (DownloadFinished != null) DownloadFinished(sender, e);
+				if (DownloadFinished == null) return;
+				if (e.Cancelled || new FileInfo(filePath).Length == 0) File.Delete(filePath);
+				DownloadFinished(sender, e);
 			};
 		}
 
 		public void Abort() {
 			// Stop the download
 			wCli.CancelAsync();
-			// Delete incomplete download file. This is necessary due to the behaviour of ImageCrawler.Download to
-			// ignore files that already exist in their path
-			File.Delete(filePath);
-			progress = 0;
 		}
 	}
 }

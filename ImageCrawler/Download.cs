@@ -22,6 +22,11 @@ namespace ImageCrawler {
 		// Specifies the destination the file should be downloaded to (including filename)
 		string filePath;
 		// WebClient used to download the file.
+		public string FilePath {
+			get {
+				return filePath;
+			}
+		}
 		WebClient wCli;
 		// Event handler for when the download finishes.
 		// Now, let's take a moment to talk about event handlers. I thought of putting this in the commit message for this commit,
@@ -50,7 +55,11 @@ namespace ImageCrawler {
 			};
 			wCli.DownloadFileCompleted += (sender, e) => {
 				if (DownloadFinished == null) return;
-				if (e.Cancelled || new FileInfo(filePath).Length == 0) File.Delete(filePath);
+				try {
+					if (e.Cancelled || new FileInfo(filePath).Length == 0) File.Delete(filePath);
+				} catch (Exception ex) {
+					// Add debug log message
+				}
 				DownloadFinished(sender, e);
 			};
 		}

@@ -90,7 +90,18 @@ namespace ImageCrawler {
 					// to Dictionary.ContainsKey() which, at worst, is O(n).
 					if (downloading.Count != 0) {
 						if (downloading.ContainsKey(downloadURL)) {
-							if (!downloading.Remove(downloadURL)) throw new Exception("Finished download could not be removed.");
+							// Try deleting the file if the download was cancelled or is empty.
+							// Only applies when this was unsuccessful before.
+							try {
+								string filePath = downloading[downloadURL].FilePath;
+								if (File.Exists(filePath) && (
+									new FileInfo(filePath).Length == 0 ||
+									e.Cancelled
+								)) File.Delete(filePath);
+							} catch (Exception ex) {
+								// Add debug log message.
+							}
+							if (!downloading.Remove(downloadURL)) throw new Exception("Finished download could not be removed."); // Replace this with debug log message
 						}
 					}
 					startNewDownloads();
@@ -102,7 +113,6 @@ namespace ImageCrawler {
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine(downloading.ToString());
 					// TODO: Add debug log output
 					return;
 				}
@@ -125,6 +135,16 @@ namespace ImageCrawler {
 			downloading = new Dictionary<string, Download>();
 			// Reinitialise the index
 			index = new Queue<string>();
+			// This may be removed at a later point in time.
+			// Check if any empty files reside in the directory, and delete them if so.
+			// This was added because of issues found with the deletion of empty downloads in debugging.
+			Directory.GetFiles(fileDestDir).AsParallel().ForAll(file => {
+				try {
+					if (new FileInfo(file).Length == 0) File.Delete(file);
+				} catch (Exception ex) {
+					// Add debug log message
+				}
+			});
 		}
 	}
 }

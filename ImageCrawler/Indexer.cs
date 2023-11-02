@@ -92,8 +92,12 @@ namespace ImageCrawler {
 			} catch (WebException e) {
 				// If we get a 404 (HttpStatusCode.NotFound), we're at the end of available pages, so this is expected
 				// If not, throw the exception again
-				if (typeof(HttpWebResponse) != e.GetType()) throw e;
+
+				// TODO: Replace "throw e" with debug log output & return for both
+				if (typeof(HttpWebResponse) != e.Response.GetType()) throw e;
 				if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.NotFound) throw e;
+				
+				
 				return;
 			} catch (ThreadAbortException) {
 				return;

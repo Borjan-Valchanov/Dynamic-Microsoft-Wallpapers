@@ -30,7 +30,7 @@ namespace ImageCrawler {
 			downloader = new Downloader(directory, parallelDownloadMax, debug);
 			indexer.indexChanged += (sender, e) => {
 				if (e.Action != System.ComponentModel.CollectionChangeAction.Add) throw new ArgumentException("Unexpected index event sent by ImageCrawler.Indexer: expected \"add\" action");
-				downloader.addToIndex((string)e.Element);
+				downloader.addToIndex(e.Element.ToString());
 			};
 		}
 		// Start downloading

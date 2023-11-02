@@ -40,6 +40,8 @@ namespace ImageCrawler {
 		}
 		// Expose a method to add a new item to the index when the Indexer raises a indexChanged event
 		public void addToIndex(string value) {
+			// TODO: Add debug log output
+			if (string.IsNullOrEmpty(value)) return;
 			index.Enqueue(value);
 			if (enabled) startNewDownloads();
 		}
@@ -49,12 +51,19 @@ namespace ImageCrawler {
 			if (!enabled) return;
 			// If there are no files to be downloaded in the index or the parallel download maximum is reached or exceeded
 			// (if it is not infinite aka -1), do not start any new downloads
-			if (index.Count == 0) return;
 			if (downloading.Count >= parallelDownloadMax && parallelDownloadMax != -1) return;
 			// Iterate so many times as that the parallel download maximum is met (if it's not infinite aka -1) or the end of the index reached
 			for (int c = downloading.Count; (c < parallelDownloadMax || parallelDownloadMax == -1) && index.Count != 0; c++) {
 				// Retrieve oldest index item
-				string downloadURL = index.Dequeue();
+				string downloadURL;
+				try {
+					downloadURL = index.Dequeue();
+				} catch (InvalidOperationException ex) {
+					// TODO: Add debug log output
+					return;
+				}
+				// TODO: Add debug log output
+				if (string.IsNullOrEmpty(downloadURL)) return;
 				// Generate file path based on destination directory and file name of the downloaded file
 				string filename = fileDestDir + "\\" + downloadURL.Split("/").Last();
 				// If the file exists already, do not download it again
@@ -87,7 +96,16 @@ namespace ImageCrawler {
 					startNewDownloads();
 				};
 				// Add download to download list
-				downloading.Add(downloadURL, download);
+				try
+				{
+					downloading.Add(downloadURL, download);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(downloading.ToString());
+					// TODO: Add debug log output
+					return;
+				}
 			}
 		}
 		// Enables downloading
